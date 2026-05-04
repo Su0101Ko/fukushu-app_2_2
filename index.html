@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>fukushu.app</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #f7f8fa;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    #app { max-width: 480px; margin: 0 auto; position: relative; }
+
+    /* Tab content */
+    .tab-content { display: none; padding: 0 0 90px; }
+    .tab-content.active { display: block; }
+
+    /* Page header */
+    .page-header {
+      padding: 20px 16px 12px;
+      position: sticky;
+      top: 0;
+      background: #f7f8fa;
+      z-index: 50;
+    }
+    .page-title { font-size: 24px; font-weight: 700; }
+    .page-subtitle { font-size: 14px; color: #888; margin-top: 2px; }
+
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin: 0 16px 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #999;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 9px 18px;
+      border-radius: 9px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-weight: 500;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:active { opacity: 0.7; }
+
+    .btn-primary { background: #4a90d9; color: white; }
+    .btn-ghost { background: transparent; color: #4a90d9; border: 1.5px solid #4a90d9; }
+    .btn-danger { background: #fee2e2; color: #dc2626; }
+    .btn-sm { padding: 5px 12px; font-size: 13px; border-radius: 7px; }
+    .btn-full { width: 100%; margin-bottom: 8px; }
+
+    /* Class items */
+    .class-item {
+      display: flex;
+      align-items: center;
+      padding: 11px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      border: 1.5px solid #f0f0f0;
+      transition: border-color 0.15s, background 0.15s;
+      gap: 10px;
+    }
+    .class-item:hover { background: #f6faff; border-color: #c8dfff; }
+    .class-item.is-logged { opacity: 0.45; }
+
+    .class-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-math { background: #4a90d9; }
+    .dot-lang { background: #27ae60; }
+    .dot-other { background: #aaa; }
+
+    .class-info { flex: 1; min-width: 0; }
+    .class-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .class-time { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+    .class-status {
+      font-size: 11px; font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .class-status.done { background: #e8f5e9; color: #27ae60; }
+    .class-status.todo { background: #eef4ff; color: #4a90d9; }
+
+    /* Date navigator */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .date-nav button {
+      background: none; border: none;
+      font-size: 22px; color: #4a90d9;
+      cursor: pointer; padding: 2px 6px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+    .date-nav button:hover { background: #eef4ff; }
+    .date-nav-label {
+      flex: 1; text-align: center;
+      font-weight: 700; font-size: 15px;
+    }
+
+    /* Filter chips */
+    .chip-row {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .chip {
+      padding: 4px 13px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1.5px solid #e0e0e0;
+      background: white;
+      color: #666;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: all 0.15s;
+    }
+    .chip.active { background: #4a90d9; border-color: #4a90d9; color: white; }
+
+    /* Task items */
+    .task-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 10px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      border: 1.5px solid #f0f0f0;
+      gap: 10px;
+    }
+    .task-item.is-done { opacity: 0.45; }
+
+    .task-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid #ddd;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      transition: all 0.15s;
+      color: white;
+    }
+    .task-check.done { background: #4a90d9; border-color: #4a90d9; }
+
+    .task-info { flex: 1; min-width: 0; }
+    .task-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-meta { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+    .task-badge {
+      font-size: 11px; font-weight: 500;
+      padding: 2px 8px; border-radius: 5px;
+      flex-shrink: 0;
+    }
+    .badge-white { background: #eef4ff; color: #4a90d9; }
+    .badge-ondo  { background: #fff4e6; color: #e67e22; }
+    .badge-yosyu { background: #e8f5e9; color: #27ae60; }
+    .badge-other { background: #f5f0ff; color: #7c3aed; }
+
+    .icon-btn {
+      background: none; border: none;
+      color: #ccc; cursor: pointer;
+      font-size: 18px; padding: 2px 4px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .icon-btn:hover { color: #e74c3c; }
+
+    /* Self-study items */
+    .ss-item {
+      display: flex; align-items: center;
+      padding: 10px 10px;
+      border-radius: 10px; margin-bottom: 6px;
+      border: 1.5px solid #f0f0f0; gap: 10px;
+    }
+    .ss-info { flex: 1; min-width: 0; }
+    .ss-name { font-size: 14px; font-weight: 500; }
+    .ss-memo { font-size: 12px; color: #aaa; margin-top: 2px; }
+    .ss-time { font-size: 14px; font-weight: 700; color: #4a90d9; flex-shrink: 0; }
+
+    /* Empty state */
+    .empty { text-align: center; color: #ccc; font-size: 14px; padding: 20px 0; }
+
+    /* Bottom nav */
+    #bottom-nav {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      background: white;
+      border-top: 1px solid #eee;
+      display: flex;
+      z-index: 100;
+      transition: transform 0.25s ease;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+    #bottom-nav.hidden { transform: translateX(-50%) translateY(100%); }
+
+    .nav-btn {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 10px 0 12px;
+      cursor: pointer;
+      color: #bbb;
+      font-size: 11px; font-weight: 500;
+      gap: 3px;
+      background: none; border: none;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: color 0.15s;
+    }
+    .nav-btn.active { color: #4a90d9; }
+    .nav-icon { font-size: 20px; line-height: 1; }
+
+    /* Calendar */
+    .cal-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .cal-month { font-size: 17px; font-weight: 700; }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .cal-weekday {
+      text-align: center; font-size: 11px;
+      color: #bbb; font-weight: 500; padding: 4px 0;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border-radius: 8px; cursor: pointer;
+      padding: 2px; position: relative;
+    }
+    .cal-day:hover { background: #f0f7ff; }
+    .cal-day.today { background: #4a90d9; color: white; }
+    .cal-day.selected:not(.today) { background: #eef4ff; outline: 1.5px solid #4a90d9; }
+    .cal-day.other-month .cal-day-num { color: #ddd; }
+    .cal-day.sun .cal-day-num { color: #e74c3c; }
+    .cal-day.sat .cal-day-num { color: #4a90d9; }
+    .cal-day.today .cal-day-num { color: white; }
+    .cal-day-num { font-size: 13px; font-weight: 500; line-height: 1; }
+    .cal-dots { display: flex; gap: 2px; margin-top: 2px; }
+    .cal-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+    }
+    .cal-dot.blue   { background: #4a90d9; }
+    .cal-dot.orange { background: #e67e22; }
+    .cal-dot.purple { background: #7c3aed; }
+    .cal-dot.green  { background: #27ae60; }
+
+    /* Date detail */
+    .date-detail {
+      background: white; border-radius: 14px;
+      padding: 16px; margin: 0 16px 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+    .date-detail-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 12px;
+    }
+    .date-detail-title { font-size: 15px; font-weight: 700; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 200; align-items: flex-end;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-sheet {
+      background: white;
+      border-radius: 20px 20px 0 0;
+      padding: 8px 20px 44px;
+      width: 100%; max-height: 88vh;
+      overflow-y: auto;
+      animation: slideUp 0.28s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: #e0e0e0; border-radius: 2px;
+      margin: 12px auto 16px;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+
+    /* Form */
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 13px; font-weight: 500; color: #666; margin-bottom: 5px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #e8e8e8;
+      border-radius: 9px;
+      font-size: 15px; font-family: 'Noto Sans JP', sans-serif;
+      background: white; color: #333;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none; border-color: #4a90d9;
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    /* Settings */
+    .setting-card {
+      background: white; border-radius: 14px;
+      padding: 16px; margin: 0 16px 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+    .setting-card h3 { font-size: 13px; font-weight: 700; color: #999; margin-bottom: 14px; letter-spacing: 0.5px; }
+
+    /* Status messages */
+    .status-msg {
+      padding: 10px 14px; border-radius: 9px;
+      font-size: 13px; margin-top: 10px;
+    }
+    .status-success { background: #e8f5e9; color: #2e7d32; }
+    .status-error   { background: #fde8e8; color: #c62828; }
+    .status-info    { background: #eef4ff; color: #1565c0; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: rgba(30,30,30,0.9); color: white;
+      padding: 10px 22px; border-radius: 22px;
+      font-size: 14px; z-index: 300;
+      opacity: 0; transition: all 0.25s;
+      pointer-events: none; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Override list in modal */
+    .override-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .override-row:last-child { border-bottom: none; }
+
+    .version-label {
+      text-align: center; color: #ccc;
+      font-size: 12px; padding: 12px;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ==================== TODAY TAB ==================== -->
+  <div id="tab-today" class="tab-content active">
+    <div class="page-header">
+      <div class="page-title">今日</div>
+      <div class="page-subtitle" id="today-subtitle"></div>
+    </div>
+
+    <!-- Classes -->
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">授業</span>
+        <span id="today-dow-label" style="font-size:13px;color:#aaa;"></span>
+      </div>
+      <div id="class-list"></div>
+    </div>
+
+    <!-- Tasks -->
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">タスク</span>
+        <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">+ 追加</button>
+      </div>
+      <div class="date-nav">
+        <button onclick="changeTaskDate(-1)">&#8249;</button>
+        <div class="date-nav-label" id="task-date-label"></div>
+        <button onclick="changeTaskDate(1)">&#8250;</button>
+      </div>
+      <div class="chip-row">
+        <button class="chip active" data-filter="all"   onclick="setTaskFilter('all',this)">すべて</button>
+        <button class="chip"        data-filter="white" onclick="setTaskFilter('white',this)">白紙再現</button>
+        <button class="chip"        data-filter="ondo"  onclick="setTaskFilter('ondo',this)">音読</button>
+        <button class="chip"        data-filter="yosyu" onclick="setTaskFilter('yosyu',this)">予習</button>
+        <button class="chip"        data-filter="other" onclick="setTaskFilter('other',this)">その他</button>
+      </div>
+      <div id="task-list"></div>
+    </div>
+
+    <!-- Self-study -->
+    <div class="card">
+      <div class="section-header">
+        <span class="section-title">自習記録</span>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modal-selfstudy')">+ 記録</button>
+      </div>
+      <div id="ss-list"></div>
+    </div>
+  </div>
+
+  <!-- ==================== CALENDAR TAB ==================== -->
+  <div id="tab-calendar" class="tab-content">
+    <div class="page-header">
+      <div class="page-title">カレンダー</div>
+    </div>
+
+    <div class="card">
+      <div class="cal-header">
+        <button class="btn btn-ghost btn-sm" onclick="changeCalMonth(-1)">&#8249;</button>
+        <span class="cal-month" id="cal-month-label"></span>
+        <button class="btn btn-ghost btn-sm" onclick="changeCalMonth(1)">&#8250;</button>
+      </div>
+      <div class="cal-grid" id="cal-weekdays"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div id="cal-detail"></div>
+  </div>
+
+  <!-- ==================== SETTINGS TAB ==================== -->
+  <div id="tab-settings" class="tab-content">
+    <div class="page-header">
+      <div class="page-title">設定</div>
+    </div>
+
+    <div class="setting-card">
+      <h3>アカウント</h3>
+      <div id="auth-status" style="margin-bottom: 15px;">
+        <p style="font-size: 14px; color: #666;">読み込み中...</p>
+      </div>
+      <button id="btn-login" class="btn btn-primary btn-full" onclick="login()" style="display:none;">Googleでログイン</button>
+      <button id="btn-logout" class="btn btn-ghost btn-full" onclick="logout()" style="display:none;">ログアウト</button>
+    </div>
+
+    <div class="setting-card">
+      <h3>データ管理</h3>
+      <button class="btn btn-danger btn-full" onclick="confirmReset()">全データをリセット</button>
+    </div>
+
+    <div class="version-label">fukushu.app v1.1 (Firebase)</div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav id="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('today',this)">
+    <span class="nav-icon">&#9744;</span>
+    <span>今日</span>
+  </button>
+  <button class="nav-btn" onclick="switchTab('calendar',this)">
+    <span class="nav-icon">&#9633;</span>
+    <span>カレンダー</span>
+  </button>
+  <button class="nav-btn" onclick="switchTab('settings',this)">
+    <span class="nav-icon">&#9881;</span>
+    <span>設定</span>
+  </button>
+</nav>
+
+<div id="toast"></div>
+
+<!-- ... (Modal code remains same until script) ... -->
+<script type="module">
+// ============================================================
+// Firebase SDK
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCVHeVMmRdnBOr9e9BiJB9tLJMaBT4GIAU",
+  authDomain: "fukushu-app-a3ffd.firebaseapp.com",
+  databaseURL: "https://fukushu-app-a3ffd-default-rtdb.firebaseio.com",
+  projectId: "fukushu-app-a3ffd",
+  storageBucket: "fukushu-app-a3ffd.firebasestorage.app",
+  messagingSenderId: "851527493167",
+  appId: "1:851527493167:web:a976bf739266b86484c8da"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+const provider = new GoogleAuthProvider();
+
+// ============================================================
+// Constants & State
+// ============================================================
+
+const DOW = ['日','月','火','水','木','金','土'];
+const TIMETABLE = {
+  1: [
+    { time:'12:10〜13:00', name:'数学XB2',   type:'math' },
+    { time:'13:40〜14:30', name:'英文法S1',   type:'lang' },
+    { time:'14:40〜15:30', name:'英語構文HA', type:'lang' },
+  ],
+  2: [
+    { time:'09:10〜10:00', name:'情報',    type:'other' },
+    { time:'11:10〜12:00', name:'数学ZB2', type:'math' },
+    { time:'12:10〜13:00', name:'数学XB3', type:'math' },
+    { time:'13:40〜14:30', name:'古文',    type:'lang' },
+  ],
+  3: [
+    { time:'09:10〜10:00', name:'理系数学研究（難関大）①', type:'math' },
+    { time:'10:10〜11:00', name:'理系数学研究（難関大）②', type:'math' },
+    { time:'11:10〜12:00', name:'数学XB4', type:'math' },
+    { time:'12:10〜13:00', name:'LHR',     type:'other' },
+    { time:'13:40〜14:30', name:'英文法S2', type:'lang' },
+    { time:'14:40〜15:30', name:'数学XB1', type:'math' },
+  ],
+  4: [
+    { time:'11:10〜12:00', name:'和文英訳H',   type:'lang' },
+    { time:'12:10〜13:00', name:'共テ現代文', type:'lang' },
+  ],
+  5: [
+    { time:'13:40〜14:30', name:'数学ZB3',    type:'math' },
+    { time:'14:40〜15:30', name:'漢文（基礎編）', type:'lang' },
+    { time:'16:40〜17:30', name:'数学ZB1',    type:'math' },
+  ],
+};
+
+let S = {
+  tasks:          [],
+  logged:         {},
+  selfstudy:      [],
+  schedules:      [],
+  classOverrides: {},
+};
+
+let currentUser = null;
+let taskOffset = 0;
+let taskFilter = 'all';
+let calYear, calMonth;
+let calSelected = null;
+let overrideDateCtx = null;
+
+// ============================================================
+// Auth & Sync
+// ============================================================
+
+onAuthStateChanged(auth, (user) => {
+  const authStatus = document.getElementById('auth-status');
+  const btnLogin = document.getElementById('btn-login');
+  const btnLogout = document.getElementById('btn-logout');
+
+  if (user) {
+    currentUser = user;
+    authStatus.innerHTML = `<p style="font-size:14px;color:#27ae60;font-weight:700;">ログイン中: ${user.displayName}</p>`;
+    btnLogin.style.display = 'none';
+    btnLogout.style.display = 'block';
+    
+    // Start syncing from Firebase
+    const userRef = ref(db, 'users/' + user.uid);
+    onValue(userRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        S.tasks = data.tasks || [];
+        S.logged = data.logged || {};
+        S.selfstudy = data.selfstudy || [];
+        S.schedules = data.schedules || [];
+        S.classOverrides = data.classOverrides || {};
+      }
+      renderToday();
+      if (document.getElementById('tab-calendar').classList.contains('active')) renderCalendar();
+    });
+  } else {
+    currentUser = null;
+    authStatus.innerHTML = `<p style="font-size:14px;color:#e74c3c;">未ログイン (保存されません)</p>`;
+    btnLogin.style.display = 'block';
+    btnLogout.style.display = 'none';
+    
+    // Clear local state if logged out
+    S = { tasks:[], logged:{}, selfstudy:[], schedules:[], classOverrides:{} };
+    renderToday();
+  }
+});
+
+window.login = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+    toast('ログインしました');
+  } catch (e) {
+    console.error(e);
+    toast('ログインエラー');
+  }
+};
+
+window.logout = async () => {
+  if (confirm('ログアウトしますか？')) {
+    await signOut(auth);
+    location.reload();
+  }
+};
+
+function save() {
+  localStorage.setItem('fukushu_app_cache', JSON.stringify(S)); // Local cache
+  if (currentUser) {
+    set(ref(db, 'users/' + currentUser.uid), S).catch(e => {
+      console.error('Firebase save error:', e);
+      toast('保存に失敗しました');
+    });
+  }
+}
+
+function load() {
+  const cached = localStorage.getItem('fukushu_app_cache');
+  if (cached) {
+    try { S = JSON.parse(cached); } catch(e) {}
+  }
+}
+
+// ============================================================
+// Logic (Subject Rules, Generation, etc.)
+// ============================================================
+
+function subjectRules(name) {
+  if (/^(英文法S[12]|英語構文HA|和文英訳H|共テ現代文|古文|漢文（基礎編）)$/.test(name)) {
+    return { ondo: true, ondoTriple: true, white: false };
+  }
+  if (/数学|理系数学|情報/.test(name)) {
+    return { ondo: false, ondoTriple: false, white: true };
+  }
+  return { ondo: true, ondoTriple: false, white: true };
+}
+
+function generateTasks(classLog) {
+  if (classLog.pattern === '不要') return [];
+  const tasks = [];
+  const rules = subjectRules(classLog.name);
+  const base  = classLog.date;
+  if (rules.ondo) {
+    if (rules.ondoTriple) {
+      [0, 1, 7].forEach(offset => {
+        tasks.push(makeTask(classLog.name, '音読', skipWE(addDays(base, offset)), 20));
+      });
+    } else {
+      tasks.push(makeTask(classLog.name, '音読', skipWE(base), 20));
+    }
+  }
+  if (rules.white) {
+    let dates = [];
+    if      (classLog.pattern === '当日')  dates = [skipWE(base)];
+    else if (classLog.pattern === '3日後') dates = [skipWE(addDays(base, 3))];
+    else if (classLog.pattern === '要注意') dates = [skipWE(addDays(base, 1)), skipWE(addDays(base, 7))];
+    dates.forEach(d => tasks.push(makeTask(classLog.name, '白紙再現', d, classLog.min || 30)));
+  }
+  return tasks;
+}
+
+function makeTask(name, type, date, min) {
+  return { id: uid(), name, type, date: ymd(date), status:'未完', min, yosyu:false, jisyu:false };
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+// ============================================================
+// Date helpers
+// ============================================================
+
+function today0() {
+  const n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+function ymd(d) { return d.toISOString().slice(0, 10); }
+function fromYMD(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+function addDays(d, n) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+function skipWE(d) {
+  let r = new Date(d);
+  while (r.getDay() === 0 || r.getDay() === 6) r = addDays(r, 1);
+  return r;
+}
+function fmtJP(d) {
+  return `${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}）`;
+}
+
+// ============================================================
+// UI & Event Handlers (Attached to window for global access)
+// ============================================================
+
+window.switchTab = (name, btn) => {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (name === 'calendar') renderCalendar();
+};
+
+window.changeTaskDate = (d) => { taskOffset += d; renderTasks(); };
+
+window.setTaskFilter = (f, btn) => {
+  taskFilter = f;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+};
+
+window.openModal = (id) => { document.getElementById(id).classList.add('open'); };
+window.closeModal = (id) => { document.getElementById(id).classList.remove('open'); };
+
+window.openClassModal = (name, dateStr) => {
+  document.getElementById('mcr-title').textContent = name + ' を記録';
+  document.getElementById('mcr-name').value  = name;
+  document.getElementById('mcr-date').value  = dateStr;
+  document.getElementById('mcr-memo').value  = '';
+  document.getElementById('mcr-pattern').value = '当日';
+  document.getElementById('mcr-time').value  = '30';
+  openModal('modal-class-record');
+};
+
+window.submitClassRecord = () => {
+  const name    = document.getElementById('mcr-name').value;
+  const dateStr = document.getElementById('mcr-date').value;
+  const memo    = document.getElementById('mcr-memo').value;
+  const pattern = document.getElementById('mcr-pattern').value;
+  const min     = parseInt(document.getElementById('mcr-time').value) || 30;
+
+  if (!S.logged[dateStr]) S.logged[dateStr] = [];
+  if (!S.logged[dateStr].includes(name)) S.logged[dateStr].push(name);
+
+  const newTasks = generateTasks({ name, date: fromYMD(dateStr), pattern, memo, min });
+  S.tasks.push(...newTasks);
+  save();
+  closeModal('modal-class-record');
+  renderToday();
+  toast(`${name} を記録しました`);
+};
+
+window.toggleTask = (id) => {
+  const t = S.tasks.find(t => t.id === id);
+  if (!t) return;
+  t.status = t.status === '未完' ? '完遂' : '未完';
+  save(); renderTasks();
+  if (calSelected) renderCalDetail(calSelected);
+};
+
+window.deleteTask = (id) => {
+  if(!confirm('タスクを削除しますか？')) return;
+  S.tasks = S.tasks.filter(t => t.id !== id);
+  save(); renderTasks();
+};
+
+window.openAddTaskModal = () => {
+  document.getElementById('nt-name').value  = '';
+  document.getElementById('nt-type').value  = '白紙再現';
+  document.getElementById('nt-date').value  = ymd(addDays(today0(), taskOffset));
+  document.getElementById('nt-time').value  = '30';
+  document.getElementById('nt-yosyu').checked = false;
+  openModal('modal-add-task');
+};
+
+window.submitNewTask = () => {
+  const name  = document.getElementById('nt-name').value.trim();
+  const type  = document.getElementById('nt-type').value;
+  const date  = document.getElementById('nt-date').value;
+  const min   = parseInt(document.getElementById('nt-time').value) || 30;
+  const yosyu = document.getElementById('nt-yosyu').checked;
+  if (!name || !date) { toast('内容と日付を入力してください'); return; }
+
+  const task = { id:uid(), name, type, date, status:'未完', min, yosyu, jisyu:false };
+  S.tasks.push(task);
+  save();
+  closeModal('modal-add-task');
+  taskOffset = Math.round((fromYMD(date) - today0()) / 86400000);
+  renderTasks();
+  toast('タスクを追加しました');
+};
+
+window.submitSelfstudy = () => {
+  const name = document.getElementById('ss-name-input').value.trim();
+  const time = parseInt(document.getElementById('ss-time-input').value) || 60;
+  const memo = document.getElementById('ss-memo-input').value.trim();
+  if (!name) { toast('内容を入力してください'); return; }
+  S.selfstudy.push({ id:uid(), name, time, memo, date:ymd(today0()) });
+  save();
+  closeModal('modal-selfstudy');
+  renderSS();
+  toast('自習を記録しました');
+};
+
+window.deleteSS = (id) => {
+  S.selfstudy = S.selfstudy.filter(s => s.id !== id);
+  save(); renderSS();
+};
+
+window.changeCalMonth = (d) => {
+  calMonth += d;
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0;  calYear++; }
+  renderCalendar();
+};
+
+window.selectCalDay = (ds) => {
+  calSelected = ds;
+  renderCalendar();
+};
+
+window.openAddSchedModal = (ds) => {
+  document.getElementById('sc-date').value = ds;
+  document.getElementById('sc-name').value = '';
+  document.getElementById('sc-type').value = '予定';
+  openModal('modal-add-schedule');
+};
+
+window.submitSchedule = () => {
+  const name = document.getElementById('sc-name').value.trim();
+  const type = document.getElementById('sc-type').value;
+  const date = document.getElementById('sc-date').value;
+  if (!name || !date) { toast('内容を入力してください'); return; }
+  S.schedules.push({ id:uid(), name, type, date });
+  save();
+  closeModal('modal-add-schedule');
+  renderCalendar();
+  toast('追加しました');
+};
+
+window.deleteSched = (id) => {
+  S.schedules = S.schedules.filter(s => s.id !== id);
+  save(); renderCalendar();
+};
+
+window.openOverrideModal = (ds) => {
+  overrideDateCtx = ds;
+  const dow = fromYMD(ds).getDay();
+  const regular = TIMETABLE[dow] || [];
+  const ov = S.classOverrides[ds] || {};
+  let html = `<div style="font-size:13px;color:#888;margin-bottom:10px;">${fmtJP(fromYMD(ds))}</div>`;
+  if (regular.length) {
+    html += regular.map(cls => {
+      const status = ov[cls.name] || 'normal';
+      return `<div class="override-row">
+        <span style="font-size:14px;">${esc(cls.name)}</span>
+        <select onchange="setOverride('${esc(cls.name)}',this.value)"
+                style="font-family:inherit;padding:4px 8px;border:1.5px solid #e0e0e0;border-radius:7px;">
+          <option value="normal" ${status==='normal'?'selected':''}>通常</option>
+          <option value="off"    ${status==='off'   ?'selected':''}>休講</option>
+        </select>
+      </div>`;
+    }).join('');
+  } else {
+    html += '<div class="empty" style="padding:8px 0;">この日の通常授業はありません</div>';
+  }
+  document.getElementById('override-body').innerHTML = html;
+  document.getElementById('extra-name').value = '';
+  openModal('modal-override');
+};
+
+window.setOverride = (className, status) => {
+  const ds = overrideDateCtx;
+  if (!S.classOverrides[ds]) S.classOverrides[ds] = {};
+  if (status === 'normal') delete S.classOverrides[ds][className];
+  else S.classOverrides[ds][className] = status;
+  if (!Object.keys(S.classOverrides[ds]).length) delete S.classOverrides[ds];
+  save();
+};
+
+window.addExtraClass = () => {
+  const ds   = overrideDateCtx;
+  const name = document.getElementById('extra-name').value.trim();
+  if (!name) return;
+  if (!S.classOverrides[ds]) S.classOverrides[ds] = {};
+  S.classOverrides[ds][name] = 'extra';
+  save();
+  closeModal('modal-override');
+  renderToday();
+  renderCalendar();
+  toast('補講を追加しました');
+};
+
+window.confirmReset = () => {
+  if (confirm('全データを削除しますか？')) {
+    localStorage.clear();
+    if(currentUser) set(ref(db, 'users/' + currentUser.uid), null);
+    location.reload();
+  }
+};
+
+// ============================================================
+// Rendering
+// ============================================================
+
+function renderToday() {
+  const t = today0();
+  document.getElementById('today-subtitle').textContent = fmtJP(t);
+  document.getElementById('today-dow-label').textContent = DOW[t.getDay()] + '曜日';
+  renderClasses();
+  renderTasks();
+  renderSS();
+}
+
+function renderClasses() {
+  const t    = today0();
+  const ds   = ymd(t);
+  const dow  = t.getDay();
+  const logged  = S.logged[ds] || [];
+  const overrides = S.classOverrides[ds] || {};
+  const regular = (TIMETABLE[dow] || []).filter(c => overrides[c.name] !== 'off');
+  const extras  = Object.entries(overrides)
+    .filter(([,v]) => v === 'extra')
+    .map(([name]) => ({ name, time: '補講', type: 'other' }));
+  const all = [...regular, ...extras];
+
+  const el = document.getElementById('class-list');
+  if (!all.length) {
+    el.innerHTML = '<div class="empty">本日の授業はありません</div>';
+    return;
+  }
+
+  el.innerHTML = all.map(cls => {
+    const isLogged = logged.includes(cls.name);
+    return `<div class="class-item ${isLogged ? 'is-logged' : ''}"
+                 onclick="openClassModal('${esc(cls.name)}','${ds}')">
+      <div class="class-dot dot-${cls.type}"></div>
+      <div class="class-info">
+        <div class="class-name">${esc(cls.name)}</div>
+        <div class="class-time">${esc(cls.time)}</div>
+      </div>
+      <span class="class-status ${isLogged ? 'done' : 'todo'}">${isLogged ? '記録済み' : '未記録'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderTasks() {
+  const target = addDays(today0(), taskOffset);
+  const ds = ymd(target);
+  document.getElementById('task-date-label').textContent = fmtJP(target);
+  const typeMap = { white:'白紙再現', ondo:'音読', yosyu:'予習', other:'その他' };
+  let tasks = S.tasks.filter(t => t.date === ds);
+  if (taskFilter !== 'all') tasks = tasks.filter(t => t.type === typeMap[taskFilter]);
+  const badgeClass = { '白紙再現':'badge-white', '音読':'badge-ondo', '予習':'badge-yosyu', 'その他':'badge-other' };
+  const el = document.getElementById('task-list');
+  if (!tasks.length) { el.innerHTML = '<div class="empty">タスクなし</div>'; return; }
+  el.innerHTML = tasks.map(t => {
+    const done = t.status !== '未完';
+    return `<div class="task-item ${done ? 'is-done' : ''}">
+      <div class="task-check ${done ? 'done' : ''}" onclick="toggleTask('${t.id}')">
+        ${done ? '&#10003;' : ''}
+      </div>
+      <div class="task-info">
+        <div class="task-name">${esc(t.name)}</div>
+        <div class="task-meta">${t.min}分${t.yosyu ? ' ・予習' : ''}</div>
+      </div>
+      <span class="task-badge ${badgeClass[t.type] || 'badge-other'}">${esc(t.type)}</span>
+      <button class="icon-btn" onclick="deleteTask('${t.id}')">&#215;</button>
+    </div>`;
+  }).join('');
+}
+
+function renderSS() {
+  const ds = ymd(today0());
+  const items = S.selfstudy.filter(s => s.date === ds);
+  const el = document.getElementById('ss-list');
+  if (!items.length) { el.innerHTML = '<div class="empty">記録なし</div>'; return; }
+  el.innerHTML = items.map(s => `
+    <div class="ss-item">
+      <div class="ss-info">
+        <div class="ss-name">${esc(s.name)}</div>
+        ${s.memo ? `<div class="ss-memo">${esc(s.memo)}</div>` : ''}
+      </div>
+      <div class="ss-time">${s.time}分</div>
+      <button class="icon-btn" onclick="deleteSS('${s.id}')">&#215;</button>
+    </div>`).join('');
+}
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = `${calYear}年${calMonth+1}月`;
+  document.getElementById('cal-weekdays').innerHTML = DOW.map(d => `<div class="cal-weekday">${d}</div>`).join('');
+  const todayStr = ymd(today0());
+  const first = new Date(calYear, calMonth, 1);
+  const last  = new Date(calYear, calMonth+1, 0);
+  let html = '';
+  for (let i = 0; i < first.getDay(); i++) {
+    const d = new Date(calYear, calMonth, 1 - first.getDay() + i);
+    html += calDayHTML(d, ymd(d), todayStr, true);
+  }
+  for (let d = 1; d <= last.getDate(); d++) {
+    const date = new Date(calYear, calMonth, d);
+    html += calDayHTML(date, ymd(date), todayStr, false);
+  }
+  const tail = last.getDay();
+  if (tail < 6) {
+    for (let i = 1; i <= 6 - tail; i++) {
+      const date = new Date(calYear, calMonth+1, i);
+      html += calDayHTML(date, ymd(date), todayStr, true);
+    }
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+  if (calSelected) renderCalDetail(calSelected);
+}
+
+function calDayHTML(date, ds, todayStr, other) {
+  const dow = date.getDay();
+  const cls = ['cal-day'];
+  if (other) cls.push('other-month');
+  if (ds === todayStr) cls.push('today');
+  if (ds === calSelected && ds !== todayStr) cls.push('selected');
+  if (dow === 0) cls.push('sun');
+  if (dow === 6) cls.push('sat');
+  const tasks = S.tasks.filter(t => t.date === ds && t.status !== '完遂');
+  const dots = [];
+  if (tasks.some(t => t.type === '白紙再現')) dots.push('blue');
+  if (tasks.some(t => t.type === '音読'))     dots.push('orange');
+  if (tasks.some(t => t.type === '予習'))     dots.push('purple');
+  if (S.schedules.some(s => s.date === ds))   dots.push('green');
+  return `<div class="${cls.join(' ')}" onclick="selectCalDay('${ds}')">
+    <span class="cal-day-num">${date.getDate()}</span>
+    <div class="cal-dots">${dots.map(c => `<div class="cal-dot ${c}"></div>`).join('')}</div>
+  </div>`;
+}
+
+function renderCalDetail(ds) {
+  const date     = fromYMD(ds);
+  const tasks    = S.tasks.filter(t => t.date === ds);
+  const scheds   = S.schedules.filter(s => s.date === ds);
+  const badgeClass = { '白紙再現':'badge-white', '音読':'badge-ondo', '予習':'badge-yosyu', 'その他':'badge-other' };
+  let html = `<div class="date-detail">
+    <div class="date-detail-header">
+      <span class="date-detail-title">${fmtJP(date)}</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="openAddSchedModal('${ds}')">+ 予定</button>
+        <button class="btn btn-ghost btn-sm" onclick="openOverrideModal('${ds}')">休講</button>
+      </div>
+    </div>`;
+  if (scheds.length) {
+    html += scheds.map(s => `
+      <div class="task-item">
+        <span class="task-badge badge-other">${esc(s.type)}</span>
+        <div class="task-info"><div class="task-name">${esc(s.name)}</div></div>
+        <button class="icon-btn" onclick="deleteSched('${s.id}')">&#215;</button>
+      </div>`).join('');
+  }
+  if (tasks.length) {
+    html += `<div style="font-size:12px;color:#aaa;margin:10px 0 6px;">タスク</div>`;
+    html += tasks.map(t => {
+      const done = t.status !== '未完';
+      return `<div class="task-item ${done ? 'is-done' : ''}">
+        <div class="task-check ${done ? 'done' : ''}" onclick="toggleTask('${t.id}')">
+          ${done ? '&#10003;' : ''}
+        </div>
+        <div class="task-info">
+          <div class="task-name">${esc(t.name)}</div>
+          <div class="task-meta">${t.min}分</div>
+        </div>
+        <span class="task-badge ${badgeClass[t.type] || 'badge-other'}">${esc(t.type)}</span>
+      </div>`;
+    }).join('');
+  }
+  if (!scheds.length && !tasks.length) html += '<div class="empty">予定・タスクなし</div>';
+  html += '</div>';
+  document.getElementById('cal-detail').innerHTML = html;
+}
+
+// ============================================================
+// Utils
+// ============================================================
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+// Init
+// ============================================================
+
+load();
+const n = new Date();
+calYear  = n.getFullYear();
+calMonth = n.getMonth();
+renderToday();
+document.getElementById('nt-date').value = ymd(today0());
+
+// Scroll to hide nav
+let lastScrollY = 0;
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('bottom-nav');
+  const cur = window.scrollY;
+  if (cur > lastScrollY + 8)      nav.classList.add('hidden');
+  else if (cur < lastScrollY - 8) nav.classList.remove('hidden');
+  lastScrollY = cur;
+}, { passive: true });
+</script>
+</body>
+</html>
